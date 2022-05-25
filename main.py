@@ -1,12 +1,8 @@
 import os
 from Editor import Editor
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
-from moviepy.audio import fx as afx
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-fade_in = afx.audio_fadein.audio_fadein
-fade_out = afx.audio_fadeout.audio_fadeout
-
 app = FastAPI()
 
 
@@ -23,7 +19,8 @@ def render(url, duration: float):
         [clip.audio.set_end(duration), outro_audio.set_start(int(duration - duration * 0.15))])
     final = concatenate_videoclips(
         [clip.set_end(duration), outro_video], method="compose").set_end(audio.duration).set_audio(audio)
-    final.write_videofile(f"out/{video_id}.mp4", fps=30, logger=None)
+    final.write_videofile(f"out/{video_id}.mp4", fps=30,
+                          logger=None, temp_audiofile=f"tmp/{video_id}.mp3")
     clip.close()
     final.close()
     os.remove(f"tmp/{video_id}{file_ext}")

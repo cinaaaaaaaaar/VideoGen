@@ -1,5 +1,4 @@
 import requests
-import numpy as np
 import random
 import os
 import mimetypes
@@ -32,10 +31,10 @@ class Editor:
         half = int(diff/2)
         if diff > 0 and indexMax == 0:
             clip: VideoClip = video.margin(top=half, bottom=half)
-            clip.resize((720, 720))
+            clip: VideoClip = clip.resize((720, 720))
         elif diff > 0 and indexMax == 1:
             clip: VideoClip = video.margin(left=half, right=half)
-            clip.resize((720, 720))
+            clip: VideoClip = clip.resize((720, 720))
         else:
-            clip = video.resize((720, 720))
+            clip: VideoClip = clip.resize((720, 720))
         return clip
