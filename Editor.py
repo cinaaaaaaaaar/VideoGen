@@ -3,35 +3,39 @@ import numpy as np
 import random
 import os
 import mimetypes
-from moviepy.editor import *
+from moviepy.editor import VideoFileClip
 from string import ascii_letters, digits
 chars = ascii_letters + digits
 
 
 class Editor:
-    def download(self, url: str, name):
+    def download(self, url: str, path):
         res = requests.get(url, stream=True)
         content_type = res.headers["content-type"]
-        file_ext = mimetypes.guess_extension(content_type)
-        video_name = f"{name}{file_ext}"
-        with open(video_name, "wb") as f:
+        video_id = ''.join(random.choice(chars) for i in range(10))
+        self.video_id = video_id
+        self.file_ext = mimetypes.guess_extension(content_type)
+        with open(f"{path}/{video_id}{self.file_ext}", "wb") as f:
             for chunk in res.iter_content(chunk_size=1024*1024):
                 if chunk:
                     f.write(chunk)
             f.close()
-        return video_name
 
     def prepareForEditing(self, url):
-        video_id = ''.join(random.choice(chars) for i in range(10))
-        video_name = self.download(url, f"tmp/{video_id}")
-        video = VideoFileClip(video_name)
+        self.download(url, "tmp/")
+        path = f"tmp/{self.video_id}{self.file_ext}"
+        video = VideoFileClip(path)
         size = video.size
         indexMax = size.index(max(size))
         indexMin = size.index(min(size))
         diff = size[indexMax] - size[indexMin]
         half = int(diff/2)
-        if indexMax == 0:
+        if diff > 0 and indexMax == 0:
             clip: VideoClip = video.margin(top=half, bottom=half)
-        else:
+            clip.resize((720, 720))
+        elif diff > 0 and indexMax == 1:
             clip: VideoClip = video.margin(left=half, right=half)
-        return {"clip": clip, "id": video_id}
+            clip.resize((720, 720))
+        else:
+            clip = video.resize((720, 720))
+        return clip
