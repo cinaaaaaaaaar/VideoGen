@@ -2,7 +2,7 @@ import requests
 import random
 import os
 import mimetypes
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeAudioClip, concatenate_videoclips
 from string import ascii_letters, digits
 chars = ascii_letters + digits
 
@@ -38,3 +38,20 @@ class Editor:
         else:
             clip: VideoClip = clip.resize((720, 720))
         return clip
+
+    def curb_your_enthusiasm(self, url, duration):
+        clip = self.prepareForEditing(url)
+        video_id = self.video_id
+        file_ext = self.file_ext
+        outro_video = VideoFileClip("assets/video/curb_your_enthusiasm.mp4").resize((720, 720))
+        outro_audio = AudioFileClip("assets/audio/curb_your_enthusiasm.mp3")
+        duration = int(duration)
+        audio = CompositeAudioClip(
+            [clip.audio.set_end(duration), outro_audio.set_start(int(duration - duration * 0.15))])
+        final = concatenate_videoclips(
+            [clip.set_end(duration), outro_video], method="compose").set_end(audio.duration).set_audio(audio)
+        final.write_videofile(f"out/{video_id}.mp4", fps=30,
+                              logger=None, temp_audiofile=f"tmp/{video_id}.mp3")
+        clip.close()
+        final.close()
+        os.remove(f"tmp/{video_id}{file_ext}")
