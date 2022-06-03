@@ -2,7 +2,7 @@ import requests
 import random
 import os
 import mimetypes
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeAudioClip, concatenate_videoclips
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeAudioClip, CompositeVideoClip, concatenate_videoclips
 from string import ascii_letters, digits
 chars = ascii_letters + digits
 
@@ -36,7 +36,7 @@ class Editor:
             clip: VideoClip = video.margin(left=half, right=half)
             clip: VideoClip = clip.resize((720, 720))
         else:
-            clip: VideoClip = clip.resize((720, 720))
+            clip: VideoClip = video.resize((720, 720))
         return clip
 
     def curb_your_enthusiasm(self, url, duration):
@@ -45,7 +45,7 @@ class Editor:
         file_ext = self.file_ext
         outro_video = VideoFileClip("assets/video/curb_your_enthusiasm.mp4").resize((720, 720))
         outro_audio = AudioFileClip("assets/audio/curb_your_enthusiasm.mp3")
-        duration = int(duration)
+        duration = int(float(duration))
         audio = CompositeAudioClip(
             [clip.audio.set_end(duration), outro_audio.set_start(int(duration - duration * 0.15))])
         final = concatenate_videoclips(
@@ -55,3 +55,15 @@ class Editor:
         clip.close()
         final.close()
         os.remove(f"tmp/{video_id}{file_ext}")
+
+    def average(self, text: list):
+        template = VideoFileClip("assets/video/average.mp4")
+        text_1 = TextClip(text[0], font="segoe-ui", fontsize=25).set_position(
+            (120, 45)).set_duration(template.duration)
+        text_2 = TextClip(text[1], font="segoe-ui", fontsize=25).set_position(
+            (480, 45)).set_duration(template.duration)
+        final = CompositeVideoClip([template, text_1])
+        final = CompositeVideoClip([final, text_2])
+        self.video_id = ''.join(random.choice(chars) for i in range(10))
+        final.write_videofile(f"out/{self.video_id}.mp4", fps=30,
+                              logger=None, temp_audiofile=f"tmp/{self.video_id}.mp3")
